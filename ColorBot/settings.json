@@ -1,0 +1,24 @@
+﻿{
+  "ApprovedColors": {
+    "darkred": "#F40105",
+    "lightred": "#CD5C5C",
+    "darkorange": "#DC5014",
+    "lightorange": "#CD945C",
+    "yellow": "#CDCC5C",
+    "darkgreen": "#22B224",
+    "lightgreen": "#95CD5C",
+    "lightcyan": "#64CEFF",
+    "darkcyan": "#21A9AB",
+    "lightblue": "#5C95CD",
+    "darkblue": "#007CFF",
+    "lightpurple": "#C672FA",
+    "darkpurple": "#A442FF"
+  },
+  "ClientID": 643998202823180307,
+  "ColorRolePositionName": "Iris Color Bot",
+  "ImageURL": null,
+  "LastRolePurge": "2019-11-14T23:27:03.1524741-06:00",
+  "Permissions": 268528640,
+  "PurgeCooldownInSeconds": 500,
+  "Token": "IT'S A SECRET"
+}
