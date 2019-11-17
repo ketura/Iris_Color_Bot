@@ -29,8 +29,10 @@ namespace ColorBot
 		{
 			if(!File.Exists(path))
 			{
+				Console.WriteLine("Settings file does not exist.  Creating...");
 				Settings settings = new Settings();
 
+				Directory.CreateDirectory(Path.GetDirectoryName(path));
 				settings.StoreSettings(path);
 			}
 			return JsonConvert.DeserializeObject<Settings>(File.ReadAllText(path));
