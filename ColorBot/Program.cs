@@ -12,7 +12,7 @@ namespace ColorBot
 
 		public static async Task MainAsync()
 		{
-			Bot bot = new Bot(Settings.FromFile("settings.json"));
+			Bot bot = new Bot(Settings.FromFile());
 			await bot.Initialize();
 
 			await Task.Delay(-1);

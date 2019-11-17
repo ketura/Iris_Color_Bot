@@ -121,6 +121,18 @@ namespace ColorBot
 				try
 				{
 					result = ColorAnalyzer.AnalyzeColor(ColorAnalyzer.FromHex(colorname));
+
+					if (result.Passes)
+					{
+						foundColor = true;
+						newColor = new DiscordColor(colorname);
+					}
+					else
+					{
+						string message = $"D: Hmm, that {color} won't work, {context.User.Mention}!  It has a dark theme contrast of {result.DarkRatio} (needs to be >= {ColorAnalyzer.MinimumDarkContrast}), and a light theme ratio of {result.LightRatio} (needs to be >= {ColorAnalyzer.MinimumLightContrast}).";
+						await context.RespondAsync(message);
+						return;
+					}
 				}
 				catch
 				{
@@ -128,17 +140,7 @@ namespace ColorBot
 					return;
 				}
 				
-				if (result.Passes)
-				{
-					foundColor = true;
-					newColor = new DiscordColor(colorname);
-				}
-				else
-				{
-					string message = $"D: Hmm, that {color} won't work, {context.User.Mention}!  It has a dark theme contrast of {result.DarkRatio} (needs to be >= {ColorAnalyzer.MinimumDarkContrast}), and a light theme ratio of {result.LightRatio} (needs to be >= {ColorAnalyzer.MinimumLightContrast}).";
-					await context.RespondAsync(message);
-					return;
-				}
+				
 			}
 
 			if(!foundColor)
@@ -289,25 +291,27 @@ If you're having trouble finding a {color} that meets this bot's standards, try 
 			try
 			{
 				parsedColor = ColorAnalyzer.FromHex(colorcode);
+
+				var result = ColorAnalyzer.AnalyzeColor(parsedColor);
+				string message = "";
+				if (result.Passes)
+				{
+					message = $":D That {color} would work, {context.User.Mention}!  It has a dark theme contrast of {result.DarkRatio}, and a light theme ratio of {result.LightRatio}.";
+				}
+				else
+				{
+					message = $"D: Hmm, that {color} won't work, {context.User.Mention}!  It has a dark theme contrast of {result.DarkRatio} (needs to be >= {ColorAnalyzer.MinimumDarkContrast}), and a light theme ratio of {result.LightRatio} (needs to be >= {ColorAnalyzer.MinimumLightContrast}).";
+				}
+
+				await context.RespondAsync(message);
 			}
-			catch (ArgumentException)
+			catch
 			{
-				await context.RespondAsync($"I'm sorry {context.User.Mention}, but I can't parse '{colorcode}' as a valid color!  It should be a hex code in the format `#RRGGBB`.");
+				await context.RespondAsync($"I'm sorry {context.User.Mention}, but I can't parse '`{colorcode}`' as a valid color!  It should be a hex code in the format `#RRGGBB`.");
 				return;
 			}
 
-			var result = ColorAnalyzer.AnalyzeColor(parsedColor);
-			string message = "";
-			if (result.Passes)
-			{
-				message = $":D That {color} would work, {context.User.Mention}!  It has a dark theme contrast of {result.DarkRatio}, and a light theme ratio of {result.LightRatio}.";
-			}
-			else
-			{
-				message = $"D: Hmm, that {color} won't work, {context.User.Mention}!  It has a dark theme contrast of {result.DarkRatio} (needs to be >= {ColorAnalyzer.MinimumDarkContrast}), and a light theme ratio of {result.LightRatio} (needs to be >= {ColorAnalyzer.MinimumLightContrast}).";
-			}
-
-			await context.RespondAsync(message);
+			
 		}
 
 
