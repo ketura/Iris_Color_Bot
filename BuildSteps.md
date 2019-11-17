@@ -23,8 +23,8 @@ helpful commands:
 
 explore a docker image:
 
-docker run --rm -it --entrypoint=/bin/bash name-of-image
+`docker run --rm -it --entrypoint=/bin/bash name-of-image`
 
 explore a (running!) docker container:
 
-docker exec -it name-of-container bash
+`docker exec -it name-of-container bash`
