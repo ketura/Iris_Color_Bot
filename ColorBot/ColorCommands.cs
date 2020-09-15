@@ -165,11 +165,7 @@ namespace ColorBot
 			}
 			else
 			{
-				if(!colorname.StartsWith("#"))
-				{
-					colorname = "#" + colorname;
-				}
-				var newrole = await context.Guild.CreateRoleAsync(colorname, color: newColor, reason: $"Created by Iris bot upon {context.Member.Mention}'s request.");
+				var newrole = await ColorRegistry.CreateColorRole(context, newColor, colorname);
 				await context.Member.GrantRoleAsync(newrole, "Added by Iris bot upon user's request.");
 			}
 
@@ -613,12 +609,7 @@ Happy {color}ing!");
 
 				
 				var newColor = new DiscordColor(CurrentSettings.ApprovedColors[colorname]);
-
-				if (!colorname.StartsWith("#"))
-				{
-					colorname = "#" + colorname;
-				}
-				var newrole = await context.Guild.CreateRoleAsync(colorname, color: newColor, reason: $"Created by Iris bot upon {context.Member.Mention}'s request.");
+				await ColorRegistry.CreateColorRole(context, newColor, colorname);
 			}
 
 			await context.RespondAsync($"Added roles, {context.User.Mention}!");

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
-
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
-
-using static ColorBot.ColorAnalyzer;
 
 namespace ColorBot
 {
@@ -31,5 +28,19 @@ namespace ColorBot
 			return roles;
 		}
 
+		public static async Task<DiscordRole> CreateColorRole(CommandContext context, DiscordColor newColor,
+			string colorname)
+		{
+			if (!colorname.StartsWith("#"))
+			{
+				colorname = "#" + colorname;
+			}
+
+			return await context.Guild.CreateRoleAsync(colorname, color: newColor,
+				reason: $"Created by Iris bot upon {context.Member.Mention}'s request.",
+				permissions: Permissions.None,
+				hoist: false,
+				mentionable: false);
+		}
 	}
 }
