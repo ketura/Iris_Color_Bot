@@ -34,8 +34,7 @@ namespace ColorBot
 				await context.RespondAsync($"You don't have any roles for me to remove, {context.User.Mention}! Stop pestering me.");
 			}
 
-			//this is not awaited on purpose, since it's a long operation.  Let it run and the connection wither.
-			ColorCommands.PurgeRoles(context);
+			await ColorCommands.PurgeRoles(context);
 		}
 
 		public async Task<bool> RemoveColorRolesFromUser(CommandContext context)
@@ -171,8 +170,7 @@ namespace ColorBot
 
 			await context.RespondAsync($"One paint job coming right up, {context.User.Mention}!");
 
-			//this is not awaited on purpose, since it's a long operation.  Let it run and the connection wither.
-			ColorCommands.PurgeRoles(context);
+			await ColorCommands.PurgeRoles(context);
 		}
 
 
@@ -411,8 +409,8 @@ Happy {color}ing!");
 			var members = context.Guild.Members.Values.ToList();
 			if (members.Count < 10)
 			{
-				Log(context, "Suspiciously small members list, skipping this purge.");
 				suspicious = $"Member list too small: {members.Count}";
+				Log(context, suspicious);
 			}
 			
 			foreach (var member in members)
@@ -428,10 +426,17 @@ Happy {color}ing!");
 			Log(context, "Purge analysis complete.");
 
 			var colorsToPurge = colorRoles.Keys.Where(x => colorRoles[x] == 0).ToList();
-			if (colorsToPurge.Count > 10)
+			if (colorsToPurge.Count > 6)
 			{
-				Log(context, "Suspiciously high number of colours to purge, skipping this purge");
 				suspicious = $"Too many colours to purge {colorsToPurge.Count}";
+				Log(context, suspicious);
+			}
+
+			var memberCount = context.Guild.MemberCount;
+			if (memberCount != members.Count)
+			{
+				suspicious = $"Member list count mismatch {memberCount} != {members.Count}";
+				Log(context, suspicious);
 			}
 			
 			List<string> colorNames = new List<string>();
