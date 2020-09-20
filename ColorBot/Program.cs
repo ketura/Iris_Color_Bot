@@ -7,7 +7,7 @@ namespace ColorBot
 	{
 		static void Main(string[] args)
 		{
-			MainAsync().Wait();
+			MainAsync().GetAwaiter().GetResult();
 		}
 
 		public static async Task MainAsync()
