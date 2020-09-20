@@ -512,7 +512,7 @@ Happy {color}ing!");
 
 	}
 
-	[RequirePermissions(Permissions.ManageRoles)]
+	[RequireUserPermissions(Permissions.ManageRoles)]
 	public class ModCommands : BaseCommandModule
 	{
 		public static Settings CurrentSettings { get; set; }

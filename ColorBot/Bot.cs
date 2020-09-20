@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -83,24 +85,31 @@ namespace ColorBot
             e.Context.Client.DebugLogger.LogMessage(LogLevel.Error, "ExampleBot",
                 $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}",
                 DateTime.Now);
-
-            // let's check if the error is a result of lack
-            // of required permissions
-            if (e.Exception is ChecksFailedException)
+            
+            var emoji = ":warning:";
+            var message = $"An error occurred executing {e.Command?.Name}";
+            if (e.Exception is ChecksFailedException cfe)
             {
-                // yes, the user lacks required permissions, 
-                // let them know
-                var emoji = DiscordEmoji.FromName(e.Context.Client, ":no_entry:");
-
-                // let's wrap the response into an embed
-                var embed = new DiscordEmbedBuilder
+                var check = cfe.FailedChecks.FirstOrDefault();
+                if (check is RequireUserPermissionsAttribute rupe)
                 {
-                    Title = "Access denied",
-                    Description = $"{emoji} You do not have the permissions required to execute this command.",
-                    Color = new DiscordColor(0xFF0000) // red
-                };
-                await e.Context.RespondAsync("", embed: embed);
+                    emoji = ":no_entry:";
+                    message = $"You do not have the permissions [{rupe.Permissions}] which are required to execute this command.";
+                }
+                else
+                {
+                    message = $"Check failed: {check?.GetType().Name}";
+                }
             }
+
+            // let's wrap the response into an embed
+            var embed = new DiscordEmbedBuilder
+            {
+                Title = "Error",
+                Description = $"{DiscordEmoji.FromName(e.Context.Client, emoji)} {message}",
+                Color = new DiscordColor(0xFF0000) // red
+            };
+            await e.Context.RespondAsync("", embed: embed);
         }
     }
 }
