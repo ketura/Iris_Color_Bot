@@ -395,6 +395,7 @@ Happy {color}ing!");
 				return;
 			}
 
+			string suspicious = null;
 			CurrentSettings.LastRolePurge = DateTime.Now;
 			CurrentSettings.StoreSettings();
 
@@ -407,7 +408,14 @@ Happy {color}ing!");
 			}
 
 			Log(context, "Beginning purge....");
-			foreach (var member in context.Guild.Members.Values)
+			var members = context.Guild.Members.Values.ToList();
+			if (members.Count < 10)
+			{
+				Log(context, "Suspiciously small members list, skipping this purge.");
+				suspicious = $"Member list too small: {members.Count}";
+			}
+			
+			foreach (var member in members)
 			{
 				foreach(var role in member.Roles)
 				{
@@ -419,13 +427,24 @@ Happy {color}ing!");
 			}
 			Log(context, "Purge analysis complete.");
 
-			var colorsToPurge = colorRoles.Keys.Where(x => colorRoles[x] == 0);
+			var colorsToPurge = colorRoles.Keys.Where(x => colorRoles[x] == 0).ToList();
+			if (colorsToPurge.Count > 10)
+			{
+				Log(context, "Suspiciously high number of colours to purge, skipping this purge");
+				suspicious = $"Too many colours to purge {colorsToPurge.Count}";
+			}
+			
 			List<string> colorNames = new List<string>();
 
 			foreach(var roleID in colorsToPurge.ToList())
 			{
 				var role = context.Guild.GetRole(roleID);
 				Log(context, $"Purging {role.Name}...");
+				if (suspicious != null)
+				{
+					continue;
+				}
+				
 				try
 				{
 					await role.DeleteAsync("Iris Bot purging unused color roles.");
@@ -445,11 +464,20 @@ Happy {color}ing!");
 				
 			}
 
-			Log(context, "Purge complete.");
+			Log(context, $"Purge complete. Suspicious: {suspicious}");
 
 			if(triggered)
 			{
-				await context.RespondAsync($"Purge complete, {context.User.Mention}! Purged {colorNames.Count()} roles ({String.Join(',', colorNames)}).");
+				if (suspicious != null)
+				{
+					await context.RespondAsync(
+						$"Purge failed, {context.User.Mention}! Purged {colorNames.Count} roles ({String.Join(',', colorNames)}).\nSuspicious: {suspicious}");
+				}
+				else
+				{
+					await context.RespondAsync(
+						$"Purge complete, {context.User.Mention}! Purged {colorNames.Count} roles ({String.Join(',', colorNames)}).");
+				}
 			}
 
 		}
