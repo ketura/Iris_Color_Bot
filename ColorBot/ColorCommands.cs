@@ -506,7 +506,7 @@ Happy {color}ing!");
 
 		public static void Log(CommandContext context, string message, LogLevel level=LogLevel.Information)
 		{
-			context.Client.Logger.Log(level, message);
+			context.Client.Logger.Log(level, Bot.LoggingEventId, message);
 		}
 
 		

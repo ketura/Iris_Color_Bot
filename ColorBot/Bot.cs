@@ -13,6 +13,8 @@ namespace ColorBot
 {
     public class Bot
     {
+        internal static readonly EventId LoggingEventId = new EventId(1000, "IrisColorBot");
+        
         public Bot(Settings settings)
         {
             CurrentSettings = settings;
@@ -60,7 +62,7 @@ namespace ColorBot
         {
             // let's log the details of the error that just 
             // occured in our client
-            client.Logger.Log(LogLevel.Error,
+            client.Logger.Log(LogLevel.Error, LoggingEventId,
                 $"Exception occured: {e.Exception.GetType()}: {e.Exception.Message}");
 
             // since this method is not async, let's return
@@ -72,7 +74,7 @@ namespace ColorBot
         private Task Commands_CommandExecuted(CommandsNextExtension sender, CommandExecutionEventArgs e)
         {
             // let's log the name of the command and user
-            e.Context.Client.Logger.Log(LogLevel.Information,
+            e.Context.Client.Logger.Log(LogLevel.Information, LoggingEventId,
                 $"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'");
 
             // since this method is not async, let's return
@@ -84,7 +86,7 @@ namespace ColorBot
         private async Task Commands_CommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
         {
             // let's log the error details
-            e.Context.Client.Logger.Log(LogLevel.Error,
+            e.Context.Client.Logger.Log(LogLevel.Error, LoggingEventId,
                 $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
             
             if (string.IsNullOrEmpty(e.Command?.QualifiedName))
