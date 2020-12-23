@@ -26,7 +26,9 @@ namespace ColorBot
             {
                 Token = CurrentSettings.Token,
                 TokenType = TokenType.Bot,
-                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers
+                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers,
+                MinimumLogLevel = LogLevel.Debug,
+                AlwaysCacheMembers = true,
             });
 
             var commands = discord.UseCommandsNext(new CommandsNextConfiguration
@@ -58,8 +60,8 @@ namespace ColorBot
         {
             // let's log the details of the error that just 
             // occured in our client
-            client.Logger.Log(LogLevel.Error, "ExampleBot",
-                $"Exception occured: {e.Exception.GetType()}: {e.Exception.Message}", DateTime.Now);
+            client.Logger.Log(LogLevel.Error,
+                $"Exception occured: {e.Exception.GetType()}: {e.Exception.Message}");
 
             // since this method is not async, let's return
             // a completed task, so that no additional work
@@ -70,8 +72,8 @@ namespace ColorBot
         private Task Commands_CommandExecuted(CommandsNextExtension sender, CommandExecutionEventArgs e)
         {
             // let's log the name of the command and user
-            e.Context.Client.Logger.Log(LogLevel.Information, "ExampleBot",
-                $"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'", DateTime.Now);
+            e.Context.Client.Logger.Log(LogLevel.Information,
+                $"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'");
 
             // since this method is not async, let's return
             // a completed task, so that no additional work
@@ -82,9 +84,8 @@ namespace ColorBot
         private async Task Commands_CommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
         {
             // let's log the error details
-            e.Context.Client.Logger.Log(LogLevel.Error, "ExampleBot",
-                $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}",
-                DateTime.Now);
+            e.Context.Client.Logger.Log(LogLevel.Error,
+                $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
             
             if (string.IsNullOrEmpty(e.Command?.QualifiedName))
             {
