@@ -86,6 +86,12 @@ namespace ColorBot
                 $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}",
                 DateTime.Now);
             
+            if (string.IsNullOrEmpty(e.Command?.QualifiedName))
+            {
+                // No need to log in channel when probably just no matching command (user said /s?)
+                return;
+            }
+
             var emoji = ":warning:";
             var message = $"An error occurred executing {e.Command?.Name}";
             if (e.Exception is ChecksFailedException cfe)
