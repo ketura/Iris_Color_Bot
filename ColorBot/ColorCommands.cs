@@ -8,6 +8,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace ColorBot
 {
@@ -503,9 +504,9 @@ Happy {color}ing!");
 
 		}
 
-		public static void Log(CommandContext context, string message, LogLevel level=LogLevel.Info)
+		public static void Log(CommandContext context, string message, LogLevel level=LogLevel.Information)
 		{
-			context.Client.DebugLogger.LogMessage(level, "IrisBot", message, DateTime.Now);
+			context.Client.Logger.Log(level, "IrisBot", message, DateTime.Now);
 		}
 
 		

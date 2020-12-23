@@ -7,6 +7,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using Microsoft.Extensions.Logging;
 
 namespace ColorBot
 {
@@ -25,8 +26,7 @@ namespace ColorBot
             {
                 Token = CurrentSettings.Token,
                 TokenType = TokenType.Bot,
-                UseInternalLogHandler = true,
-                LogLevel = LogLevel.Debug
+                Intents = DiscordIntents.AllUnprivileged | DiscordIntents.GuildMembers
             });
 
             var commands = discord.UseCommandsNext(new CommandsNextConfiguration
@@ -54,11 +54,11 @@ namespace ColorBot
             await discord.ConnectAsync();
         }
 
-        private Task Client_ClientError(ClientErrorEventArgs e)
+        private Task Client_ClientError(DiscordClient client, ClientErrorEventArgs e)
         {
             // let's log the details of the error that just 
             // occured in our client
-            e.Client.DebugLogger.LogMessage(LogLevel.Error, "ExampleBot",
+            client.Logger.Log(LogLevel.Error, "ExampleBot",
                 $"Exception occured: {e.Exception.GetType()}: {e.Exception.Message}", DateTime.Now);
 
             // since this method is not async, let's return
@@ -67,10 +67,10 @@ namespace ColorBot
             return Task.CompletedTask;
         }
 
-        private Task Commands_CommandExecuted(CommandExecutionEventArgs e)
+        private Task Commands_CommandExecuted(CommandsNextExtension sender, CommandExecutionEventArgs e)
         {
             // let's log the name of the command and user
-            e.Context.Client.DebugLogger.LogMessage(LogLevel.Info, "ExampleBot",
+            e.Context.Client.Logger.Log(LogLevel.Information, "ExampleBot",
                 $"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'", DateTime.Now);
 
             // since this method is not async, let's return
@@ -79,10 +79,10 @@ namespace ColorBot
             return Task.CompletedTask;
         }
 
-        private async Task Commands_CommandErrored(CommandErrorEventArgs e)
+        private async Task Commands_CommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
         {
             // let's log the error details
-            e.Context.Client.DebugLogger.LogMessage(LogLevel.Error, "ExampleBot",
+            e.Context.Client.Logger.Log(LogLevel.Error, "ExampleBot",
                 $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}",
                 DateTime.Now);
             
