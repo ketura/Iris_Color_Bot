@@ -407,7 +407,7 @@ Happy {color}ing!");
 			}
 
 			Log(context, "Beginning purge....");
-			var members = context.Guild.Members.Values.ToList();
+			var members = await context.Guild.GetAllMembersAsync();
 			if (members.Count < 10)
 			{
 				suspicious = $"Member list too small: {members.Count}";
