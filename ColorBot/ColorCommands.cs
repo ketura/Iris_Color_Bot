@@ -427,7 +427,7 @@ Happy {color}ing!");
 			Log(context, "Purge analysis complete.");
 
 			var colorsToPurge = colorRoles.Keys.Where(x => colorRoles[x] == 0).ToList();
-			if (colorsToPurge.Count > 6)
+			if (colorsToPurge.Count > 100 || colorsToPurge.Count == colorRoles.Count)
 			{
 				suspicious = $"Too many colours to purge {colorsToPurge.Count}";
 				Log(context, suspicious);
