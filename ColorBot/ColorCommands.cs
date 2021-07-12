@@ -8,6 +8,7 @@ using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace ColorBot
 {
@@ -34,8 +35,7 @@ namespace ColorBot
 				await context.RespondAsync($"You don't have any roles for me to remove, {context.User.Mention}! Stop pestering me.");
 			}
 
-			//this is not awaited on purpose, since it's a long operation.  Let it run and the connection wither.
-			ColorCommands.PurgeRoles(context);
+			await ColorCommands.PurgeRoles(context);
 		}
 
 		public async Task<bool> RemoveColorRolesFromUser(CommandContext context)
@@ -165,18 +165,13 @@ namespace ColorBot
 			}
 			else
 			{
-				if(!colorname.StartsWith("#"))
-				{
-					colorname = "#" + colorname;
-				}
-				var newrole = await context.Guild.CreateRoleAsync(colorname, color: newColor, reason: $"Created by Iris bot upon {context.Member.Mention}'s request.");
+				var newrole = await ColorRegistry.CreateColorRole(context, newColor, colorname);
 				await context.Member.GrantRoleAsync(newrole, "Added by Iris bot upon user's request.");
 			}
 
 			await context.RespondAsync($"One paint job coming right up, {context.User.Mention}!");
 
-			//this is not awaited on purpose, since it's a long operation.  Let it run and the connection wither.
-			ColorCommands.PurgeRoles(context);
+			await ColorCommands.PurgeRoles(context);
 		}
 
 
@@ -399,6 +394,7 @@ Happy {color}ing!");
 				return;
 			}
 
+			string suspicious = null;
 			CurrentSettings.LastRolePurge = DateTime.Now;
 			CurrentSettings.StoreSettings();
 
@@ -411,7 +407,14 @@ Happy {color}ing!");
 			}
 
 			Log(context, "Beginning purge....");
-			foreach (var member in context.Guild.Members.Values)
+			var members = await context.Guild.GetAllMembersAsync();
+			if (members.Count < 10)
+			{
+				suspicious = $"Member list too small: {members.Count}";
+				Log(context, suspicious);
+			}
+			
+			foreach (var member in members)
 			{
 				foreach(var role in member.Roles)
 				{
@@ -423,13 +426,31 @@ Happy {color}ing!");
 			}
 			Log(context, "Purge analysis complete.");
 
-			var colorsToPurge = colorRoles.Keys.Where(x => colorRoles[x] == 0);
+			var colorsToPurge = colorRoles.Keys.Where(x => colorRoles[x] == 0).ToList();
+			if (colorsToPurge.Count > 100 || colorsToPurge.Count == colorRoles.Count)
+			{
+				suspicious = $"Too many colours to purge {colorsToPurge.Count}";
+				Log(context, suspicious);
+			}
+
+			var memberCount = context.Guild.MemberCount;
+			if (memberCount != members.Count)
+			{
+				suspicious = $"Member list count mismatch {memberCount} != {members.Count}";
+				Log(context, suspicious);
+			}
+			
 			List<string> colorNames = new List<string>();
 
 			foreach(var roleID in colorsToPurge.ToList())
 			{
 				var role = context.Guild.GetRole(roleID);
 				Log(context, $"Purging {role.Name}...");
+				if (suspicious != null)
+				{
+					continue;
+				}
+				
 				try
 				{
 					await role.DeleteAsync("Iris Bot purging unused color roles.");
@@ -449,11 +470,20 @@ Happy {color}ing!");
 				
 			}
 
-			Log(context, "Purge complete.");
+			Log(context, $"Purge complete. Suspicious: {suspicious}");
 
 			if(triggered)
 			{
-				await context.RespondAsync($"Purge complete, {context.User.Mention}! Purged {colorNames.Count()} roles ({String.Join(',', colorNames)}).");
+				if (suspicious != null)
+				{
+					await context.RespondAsync(
+						$"Purge failed, {context.User.Mention}! Purged {colorNames.Count} roles ({String.Join(',', colorNames)}).\nSuspicious: {suspicious}");
+				}
+				else
+				{
+					await context.RespondAsync(
+						$"Purge complete, {context.User.Mention}! Purged {colorNames.Count} roles ({String.Join(',', colorNames)}).");
+				}
 			}
 
 		}
@@ -474,16 +504,16 @@ Happy {color}ing!");
 
 		}
 
-		public static void Log(CommandContext context, string message, LogLevel level=LogLevel.Info)
+		public static void Log(CommandContext context, string message, LogLevel level=LogLevel.Information)
 		{
-			context.Client.DebugLogger.LogMessage(level, "IrisBot", message, DateTime.Now);
+			context.Client.Logger.Log(level, Bot.LoggingEventId, message);
 		}
 
 		
 
 	}
 
-	[RequirePermissions(Permissions.ManageRoles)]
+	[RequireUserPermissions(Permissions.ManageRoles)]
 	public class ModCommands : BaseCommandModule
 	{
 		public static Settings CurrentSettings { get; set; }
@@ -613,12 +643,7 @@ Happy {color}ing!");
 
 				
 				var newColor = new DiscordColor(CurrentSettings.ApprovedColors[colorname]);
-
-				if (!colorname.StartsWith("#"))
-				{
-					colorname = "#" + colorname;
-				}
-				var newrole = await context.Guild.CreateRoleAsync(colorname, color: newColor, reason: $"Created by Iris bot upon {context.Member.Mention}'s request.");
+				await ColorRegistry.CreateColorRole(context, newColor, colorname);
 			}
 
 			await context.RespondAsync($"Added roles, {context.User.Mention}!");
